@@ -10,6 +10,12 @@ start-help:
 start-version:
 	npm run babel-node -- src/bin/page-loader.js -V
 
+start-global:
+	page-loader https://hexlet.io/courses
+
+start-global-output:
+	page-loader --output /tmp/page-loader https://hexlet.io/courses
+
 build:
 	rm -rf dist
 	npm run build
@@ -27,7 +33,7 @@ test-coverage:
 	npm test -- --coverage
 
 lint:
-	npm run eslint src/
+	npm run eslint .
 
 list:
 	npm list -g --depth=0
@@ -48,13 +54,13 @@ relink:
 	npm run build
 	npm link
 
-# install-global:
-# 	npm list -g --depth=0
-# 	npm install -g strelkov-pageloader
-# 	npm list -g --depth=0
+install-global:
+	npm list -g --depth=0
+	npm install -g strelkov-pageloader
+	npm list -g --depth=0
 
-# uninstall-global:
-# 	npm list -g --depth=0
-# 	npm uninstall -g strelkov-pageloader
-# 	npm list -g --depth=0
+uninstall-global:
+	npm list -g --depth=0
+	npm uninstall -g strelkov-pageloader
+	npm list -g --depth=0
 
