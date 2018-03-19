@@ -1,0 +1,53 @@
+{
+  "name": "strelkov-pageloader",
+  "version": "0.0.1",
+  "description": "cli utility for web-page download",
+  "main": "dist/index.js",
+  "bin": {
+    "page-loader": "dist/bin/page-loader.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest",
+    "eslint": "eslint",
+    "babel-node": "babel-node",
+    "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denis-ok/project-lvl3-s194.git"
+  },
+  "author": "Denis Strelkov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/denis-ok/project-lvl3-s194/issues"
+  },
+  "homepage": "https://github.com/denis-ok/project-lvl3-s194#readme",
+  "devDependencies": {
+    "babel-cli": "*",
+    "babel-core": "*",
+    "babel-eslint": "^8.2.2",
+    "babel-preset-env": "*",
+    "babel-preset-stage-0": "*",
+    "eslint": "^4.19.0",
+    "eslint-config-airbnb-base": "*",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-jest": "^21.15.0",
+    "jest": "^22.4.2",
+    "jest-cli": "^22.4.2"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "commander": "^2.15.0",
+    "listr": "^0.13.0",
+    "lodash": "^4.17.5",
+    "mz": "^2.7.0",
+    "nock": "^9.2.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
