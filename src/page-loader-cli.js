@@ -3,7 +3,7 @@ import loadPage from './';
 
 
 program
-  .version('0.0.1')
+  .version('0.1.0')
   .description('This program takes URL to download web-page for local use')
   .option('-o, --output <dir>', 'Specify output directory')
   .arguments('<url>')

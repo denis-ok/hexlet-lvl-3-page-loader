@@ -1,6 +1,6 @@
 {
   "name": "strelkov-pageloader",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "cli utility for web-page download",
   "main": "dist/index.js",
   "bin": {
@@ -41,7 +41,9 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.2",
     "commander": "^2.15.0",
+    "js-beautify": "^1.7.5",
     "listr": "^0.13.0",
     "lodash": "^4.17.5",
     "mz": "^2.7.0",
