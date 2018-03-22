@@ -92,5 +92,73 @@ describe('requests', () => {
     expect(loadedFilesCount).toEqual(6);
     expect(format(loadedHtml)).toEqual(format(htmlAfter));
   });
+
+  it('Should has Error when create html: No such file or directory', async () => {
+    const url = 'http://bad-page.com';
+    const dir = '/dir/not/exist';
+    try {
+      await loadPage(url, dir);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toMatch('no such file or directory');
+    }
+  });
+
+  it('Should has Error when page not exist', async () => {
+    const tempDir = await makeTempDir();
+    const url = 'http://bad-page.com';
+    const status = '404';
+    nock(url).get('/').reply(status);
+
+    try {
+      await loadPage(url, tempDir);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.message).toBe('Request failed with status code 404');
+    }
+  });
+
+  it('Should not download one of files', async () => {
+    nock('http://hexlet.io')
+      .get('/courses')
+      .reply(200, htmlBefore);
+
+    nock('http://hexlet.io')
+      .get('/img/logo/big.jpg')
+      .reply(200, jpg);
+
+    nock('http://hexlet.io')
+      .get('/assets/application1.js')
+      .reply(200, js);
+
+    nock('http://hexlet.io')
+      .get('/default1.css')
+      .reply(200, css);
+
+    nock('http://page.com')
+      .get('/img/logo/small.jpg')
+      .reply(200, jpg);
+
+    nock('http://page.com')
+      .get('/assets/application2.js')
+      .reply(200, js);
+
+    nock('http://page.com')
+      .get('/default2.css')
+      .reply(404);
+
+    const tempDir = await makeTempDir();
+    const loadedHtmlPath = path.join(tempDir, filename);
+    const loadedFilesPath = path.join(tempDir, dirname);
+
+    await loadPage(hexletURL, tempDir);
+
+    const loadedFilesList = await fs.readdir(loadedFilesPath);
+    const loadedFilesCount = loadedFilesList.length;
+    const loadedHtml = await fs.readFile(loadedHtmlPath, 'utf8');
+
+    expect(loadedFilesCount).toEqual(5);
+    expect(format(loadedHtml)).toEqual(format(htmlAfter));
+  });
 });
 

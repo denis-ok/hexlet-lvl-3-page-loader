@@ -16,6 +16,15 @@ start-global:
 start-global-output:
 	page-loader --output /tmp/page-loader https://hexlet.io/courses
 
+start-global-debug:
+	DEBUG=page-loader:* page-loader https://hexlet.io/courses
+
+start-global-output-debug:
+	DEBUG=page-loader:* page-loader --output /tmp/page-loader https://hexlet.io/courses
+
+start-global-debug-err:
+	DEBUG=page-loader:* page-loader --output /tmp1/page-loader https://hexlet.io/courses
+
 build:
 	rm -rf dist
 	npm run build
@@ -25,6 +34,9 @@ publish:
 
 test:
 	npm test
+
+test-debug:
+	DEBUG=page-loader:* npm test
 
 test-watch:
 	npm test -- --watch

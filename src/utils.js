@@ -2,6 +2,9 @@
 import pathLib from 'path';
 import cheerio from 'cheerio';
 import urlLib from 'url';
+import debug from 'debug';
+
+const logInfo = debug('page-loader:info');
 
 const tagsAttrs = {
   img: 'src',
@@ -41,8 +44,11 @@ const urlToAbsolute = (urlStr, inputUrl) => {
   return urlStr;
 };
 
-const getRemoteFileUrls = (html, inputUrl) =>
-  getFileUrlsAsIs(html).map(url => urlToAbsolute(url, inputUrl));
+const getRemoteFileUrls = (html, inputUrl) => {
+  const urls = getFileUrlsAsIs(html).map(url => urlToAbsolute(url, inputUrl));
+  logInfo(`Count of files to Download: ${urls.length}`);
+  return urls;
+};
 
 const genLocalFilename = (urlStr) => {
   const { pathname } = urlLib.parse(urlStr);
