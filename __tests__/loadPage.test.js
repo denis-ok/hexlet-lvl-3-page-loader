@@ -35,8 +35,6 @@ const readHtmlFileSync = (relPath) => {
   return fs.readFileSync(filepath, 'utf8');
 };
 
-const htmlBefore = readHtmlFileSync('./__fixtures__/before.html');
-const htmlAfter = readHtmlFileSync('./__fixtures__/after.html');
 const hexletURL = 'http://hexlet.io/courses';
 const dirname = 'hexlet-io-courses_files';
 const filename = 'hexlet-io-courses.html';
@@ -47,6 +45,9 @@ const css = 'h1 { color: black; }';
 nock.disableNetConnect();
 
 describe('requests', () => {
+  const htmlBefore = readHtmlFileSync('./__fixtures__/before.html');
+  const htmlAfter = readHtmlFileSync('./__fixtures__/after.html');
+
   beforeAll(() => {
     nock('http://hexlet.io')
       .get('/courses')

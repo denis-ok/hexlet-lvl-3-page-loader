@@ -1,24 +1,35 @@
 /* eslint-disable no-use-before-define, no-shadow */
-
 import pathLib from 'path';
 import cheerio from 'cheerio';
 import urlLib from 'url';
 
-const getFileUrls = (html) => {
-  const $ = cheerio.load(html);
-  const imgArr = $('img').map((i, el) => $(el).attr('src')).get();
-  const scriptArr = $('script').map((i, el) => $(el).attr('src')).get();
-  const linkArr = $('link').map((i, el) => $(el).attr('href')).get();
-  return [...imgArr, ...scriptArr, ...linkArr];
+const tagsAttrs = {
+  img: 'src',
+  script: 'src',
+  link: 'href',
 };
 
-const isRelative = (urlStr) => {
+const getAttrValues = (dom, tag, attr) =>
+  dom(tag).map((i, el) => dom(el).attr(attr)).get();
+
+const getMultiAttrValues = (html, tagsAttrsObj) => {
+  const dom = cheerio.load(html);
+  const tags = Object.keys(tagsAttrsObj);
+  const attrs = Object.values(tagsAttrsObj);
+
+  return tags.reduce((acc, tag, i) =>
+    [...acc, ...getAttrValues(dom, tag, attrs[i])], []);
+};
+
+const getFileUrlsAsIs = html => getMultiAttrValues(html, tagsAttrs);
+
+const isUrlRelative = (urlStr) => {
   const urlObj = urlLib.parse(urlStr);
   return !urlObj.protocol && !urlObj.host;
 };
 
-const toAbsolute = (urlStr, inputUrl) => {
-  if (isRelative(urlStr)) {
+const urlToAbsolute = (urlStr, inputUrl) => {
+  if (isUrlRelative(urlStr)) {
     const { protocol, hostname } = urlLib.parse(inputUrl);
     return urlLib.format({
       protocol,
@@ -31,12 +42,11 @@ const toAbsolute = (urlStr, inputUrl) => {
 };
 
 const getRemoteFileUrls = (html, inputUrl) =>
-  getFileUrls(html).map(url => toAbsolute(url, inputUrl));
+  getFileUrlsAsIs(html).map(url => urlToAbsolute(url, inputUrl));
 
 const genLocalFilename = (urlStr) => {
   const { pathname } = urlLib.parse(urlStr);
-  const filename = pathname.slice(1).split('/').join('-');
-  return filename;
+  return pathname.slice(1).split('/').join('-');
 };
 
 const genFilename = (inputUrl, option = 'html') => {
@@ -56,40 +66,60 @@ const genOutputPath = (outputPath = __dirname, filename) =>
 const genLocalFilepath = (urlStr, inputUrl) =>
   pathLib.join(genFilename(inputUrl, 'files'), genLocalFilename(urlStr));
 
-
 const changeHtmlUrls = (html, inputUrl) => {
-  const options = {
+  const parseOptions = {
     withDomLvl1: true,
     normalizeWhitespace: false,
     xmlMode: false,
     decodeEntities: false,
   };
 
-  const $ = cheerio.load(html, options);
-  $('[src], [href]').each((i, el) => {
-    const current = $(el);
-    if (current.is('img') || current.is('script')) {
-      const value = current.attr('src');
+  const tagsAttrsObj = tagsAttrs;
+
+  const dom = cheerio.load(html, parseOptions);
+  const tags = Object.keys(tagsAttrsObj);
+  const attrs = Object.values(tagsAttrsObj);
+
+  const changeTagAttrValues = (dom, tag, attr) => {
+    dom(`${tag}[${attr}]`).each((i, el) => {
+      const current = dom(el);
+      const value = current.attr(attr);
       const newValue = genLocalFilepath(value, inputUrl);
-      return current.attr('src', newValue);
-    }
-    if (current.is('link')) {
-      const value = current.attr('href');
-      const newValue = genLocalFilepath(value, inputUrl);
-      return current.attr('href', newValue);
-    }
-    return true;
-  });
-  return $.html();
+      return current.attr(attr, newValue);
+    });
+  };
+
+  tags.forEach((tag, i) =>
+    changeTagAttrValues(dom, tag, attrs[i]));
+
+  return dom.html();
 };
 
 export { getRemoteFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename };
 
-// const $clone = $.root().clone();
+// const changeHtmlUrls = (html, inputUrl) => {
+//   const parseOptions = {
+//     withDomLvl1: true,
+//     normalizeWhitespace: false,
+//     xmlMode: false,
+//     decodeEntities: false,
+//   };
 
+//   const $ = cheerio.load(html, parseOptions);
 
-// $('img').each((i, el) => {
-//   const srcValue = $(el).attr('src');
-//   const newValue = genLocalFilepath(srcValue, inputUrl);
-//   return $(el).attr('src', newValue);
-// });
+//   $('[src], [href]').each((i, el) => {
+//     const current = $(el);
+//     if (current.is('img') || current.is('script')) {
+//       const value = current.attr('src');
+//       const newValue = genLocalFilepath(value, inputUrl);
+//       return current.attr('src', newValue);
+//     }
+//     if (current.is('link')) {
+//       const value = current.attr('href');
+//       const newValue = genLocalFilepath(value, inputUrl);
+//       return current.attr('href', newValue);
+//     }
+//     return true;
+//   });
+//   return $.html();
+// };
