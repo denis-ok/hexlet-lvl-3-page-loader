@@ -1,8 +1,8 @@
 /* eslint-disable no-use-before-define, no-shadow */
 
-import path from 'path';
+import pathLib from 'path';
 import cheerio from 'cheerio';
-import url from 'url';
+import urlLib from 'url';
 
 const getFileUrls = (html) => {
   const $ = cheerio.load(html);
@@ -13,14 +13,14 @@ const getFileUrls = (html) => {
 };
 
 const isRelative = (urlStr) => {
-  const urlObj = url.parse(urlStr);
+  const urlObj = urlLib.parse(urlStr);
   return !urlObj.protocol && !urlObj.host;
 };
 
 const toAbsolute = (urlStr, inputUrl) => {
   if (isRelative(urlStr)) {
-    const { protocol, hostname } = url.parse(inputUrl);
-    return url.format({
+    const { protocol, hostname } = urlLib.parse(inputUrl);
+    return urlLib.format({
       protocol,
       hostname,
       pathname: urlStr,
@@ -30,11 +30,11 @@ const toAbsolute = (urlStr, inputUrl) => {
   return urlStr;
 };
 
-const getAbsFileUrls = (html, inputUrl) =>
+const getRemoteFileUrls = (html, inputUrl) =>
   getFileUrls(html).map(url => toAbsolute(url, inputUrl));
 
 const genLocalFilename = (urlStr) => {
-  const { pathname } = url.parse(urlStr);
+  const { pathname } = urlLib.parse(urlStr);
   const filename = pathname.slice(1).split('/').join('-');
   return filename;
 };
@@ -44,17 +44,17 @@ const genFilename = (inputUrl, option = 'html') => {
     html: '.html',
     files: '_files',
   };
-  const { host, port, path } = url.parse(inputUrl);
+  const { host, port, path } = urlLib.parse(inputUrl);
   const parts = path === '/' ? [host, port] : [host, port, path];
   const formatted = parts.join('').replace(/[^a-z0-9]/gi, '-');
   return `${formatted}${options[option]}`;
 };
 
 const genOutputPath = (outputPath = __dirname, filename) =>
-  path.join(outputPath, filename);
+  pathLib.join(outputPath, filename);
 
 const genLocalFilepath = (urlStr, inputUrl) =>
-  path.join(genFilename(inputUrl, 'files'), genLocalFilename(urlStr));
+  pathLib.join(genFilename(inputUrl, 'files'), genLocalFilename(urlStr));
 
 
 const changeHtmlUrls = (html, inputUrl) => {
@@ -83,7 +83,7 @@ const changeHtmlUrls = (html, inputUrl) => {
   return $.html();
 };
 
-export { getAbsFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename };
+export { getRemoteFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename };
 
 // const $clone = $.root().clone();
 
