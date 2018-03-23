@@ -2,7 +2,7 @@ install:
 	npm install
 
 start:
-	npm run babel-node -- 'src/bin/page-loader.js'
+	npm run babel-node -- src/bin/page-loader.js https://hexlet.io/courses
 
 start-help:
 	npm run babel-node -- src/bin/page-loader.js -h
@@ -10,20 +10,11 @@ start-help:
 start-version:
 	npm run babel-node -- src/bin/page-loader.js -V
 
-start-global:
-	page-loader https://hexlet.io/courses
-
 start-global-output:
 	page-loader --output /tmp/page-loader https://hexlet.io/courses
 
 start-global-debug:
 	DEBUG=page-loader:* page-loader https://hexlet.io/courses
-
-start-global-output-debug:
-	DEBUG=page-loader:* page-loader --output /tmp/page-loader https://hexlet.io/courses
-
-start-global-debug-err:
-	DEBUG=page-loader:* page-loader --output /tmp1/page-loader https://hexlet.io/courses
 
 build:
 	rm -rf dist
