@@ -2,6 +2,7 @@
 import axios from 'axios';
 import fs from 'mz/fs';
 import debugLib from 'debug';
+import Listr from 'listr';
 import { getRemoteFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename } from './utils';
 import buildErrorMsg from './errorBulder';
 
@@ -25,9 +26,6 @@ const loadPage = (inputUrl, outputPath) => {
   const filesDirname = genFilename(inputUrl, 'files');
   const filesPath = genOutputPath(outputPath, filesDirname);
 
-  // console.log('Save html to:', htmlFilepath);
-  // console.log('Save files to:', filesPath);
-
   log('info', 'Start asyncronous work.................');
   return writeEmptyHtmlFile(htmlFilepath, '')
     .then(() => makeDirForFiles(filesPath))
@@ -42,7 +40,9 @@ const loadPage = (inputUrl, outputPath) => {
     .then(() => {
       const successMsg = 'Page and files has been succesfully downloaded';
       log('info', successMsg);
-      // console.log(successMsg);
+      console.log(successMsg);
+      console.log('Saved html to:', htmlFilepath);
+      console.log('Saved files to:', filesPath);
     })
     .catch((err) => {
       log('info', buildErrorMsg(err));
@@ -94,12 +94,32 @@ const downloadRemoteFile = (urlStr, pathForFiles) => {
     .then(() => log('fs', 'Ok! File has been saved:', filepath))
     .catch((err) => {
       log('info', buildErrorMsg(err));
+      return Promise.reject(err);
     });
 };
 
+const genLoadFileTaskObj = (url, path) => {
+  const taskObj = {
+    title: `Downloading file: ${url}`,
+    task: (ctx, task) => downloadRemoteFile(url, path)
+      .catch((err) => {
+        task.title = `Download file Failed: ${url}`; /* eslint-disable-line */
+        task.skip(err.message);
+      }),
+  };
+  return taskObj;
+};
+
+const genTasksColl = (urls, path) =>
+  urls.map(url => genLoadFileTaskObj(url, path));
+
+const genBigTask = tasksColl => new Listr(tasksColl, { concurrent: true });
+
 const downloadAllFiles = (urls, path, html) => {
   log('http', 'Begin downloading remote files...');
-  return Promise.all(urls.map(url => downloadRemoteFile(url, path)))
+  const tasksColl = genTasksColl(urls, path);
+  const bigTask = genBigTask(tasksColl);
+  return bigTask.run()
     .then(() => html);
 };
 

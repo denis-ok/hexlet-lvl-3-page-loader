@@ -1,5 +1,5 @@
 import program from 'commander';
-import version from '../package.json';
+import { version } from '../package.json';
 import loadPage from './';
 import buildErrorMsg from './errorBulder';
 
