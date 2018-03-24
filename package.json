@@ -1,6 +1,6 @@
 {
   "name": "strelkov-pageloader",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "cli utility for web-page download",
   "main": "dist/index.js",
   "bin": {

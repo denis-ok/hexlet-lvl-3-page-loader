@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define, no-shadow */
 import pathLib from 'path';
 import cheerio from 'cheerio';
 import urlLib from 'url';
@@ -40,7 +39,6 @@ const urlToAbsolute = (urlStr, inputUrl) => {
       pathname: urlStr,
     });
   }
-
   return urlStr;
 };
 
@@ -52,7 +50,10 @@ const getRemoteFileUrls = (html, inputUrl) => {
 
 const genLocalFilename = (urlStr) => {
   const { pathname } = urlLib.parse(urlStr);
-  return pathname.slice(1).split('/').join('-');
+  if (pathLib.isAbsolute(pathname)) {
+    return pathLib.normalize(pathname).slice(1).split('/').join('-');
+  }
+  return pathLib.normalize(pathname).split('/').join('-');
 };
 
 const genFilename = (inputUrl, option = 'html') => {
@@ -73,19 +74,6 @@ const genLocalFilepath = (urlStr, inputUrl) =>
   pathLib.join(genFilename(inputUrl, 'files'), genLocalFilename(urlStr));
 
 const changeHtmlUrls = (html, inputUrl) => {
-  const parseOptions = {
-    withDomLvl1: true,
-    normalizeWhitespace: false,
-    xmlMode: false,
-    decodeEntities: false,
-  };
-
-  const tagsAttrsObj = tagsAttrs;
-
-  const dom = cheerio.load(html, parseOptions);
-  const tags = Object.keys(tagsAttrsObj);
-  const attrs = Object.values(tagsAttrsObj);
-
   const changeTagAttrValues = (dom, tag, attr) => {
     dom(`${tag}[${attr}]`).each((i, el) => {
       const current = dom(el);
@@ -95,6 +83,18 @@ const changeHtmlUrls = (html, inputUrl) => {
     });
   };
 
+  const parseOptions = {
+    withDomLvl1: true,
+    normalizeWhitespace: false,
+    xmlMode: false,
+    decodeEntities: false,
+  };
+
+  const tagsAttrsObj = tagsAttrs;
+  const dom = cheerio.load(html, parseOptions);
+  const tags = Object.keys(tagsAttrsObj);
+  const attrs = Object.values(tagsAttrsObj);
+
   tags.forEach((tag, i) =>
     changeTagAttrValues(dom, tag, attrs[i]));
 
@@ -103,29 +103,3 @@ const changeHtmlUrls = (html, inputUrl) => {
 
 export { getRemoteFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename };
 
-// const changeHtmlUrls = (html, inputUrl) => {
-//   const parseOptions = {
-//     withDomLvl1: true,
-//     normalizeWhitespace: false,
-//     xmlMode: false,
-//     decodeEntities: false,
-//   };
-
-//   const $ = cheerio.load(html, parseOptions);
-
-//   $('[src], [href]').each((i, el) => {
-//     const current = $(el);
-//     if (current.is('img') || current.is('script')) {
-//       const value = current.attr('src');
-//       const newValue = genLocalFilepath(value, inputUrl);
-//       return current.attr('src', newValue);
-//     }
-//     if (current.is('link')) {
-//       const value = current.attr('href');
-//       const newValue = genLocalFilepath(value, inputUrl);
-//       return current.attr('href', newValue);
-//     }
-//     return true;
-//   });
-//   return $.html();
-// };

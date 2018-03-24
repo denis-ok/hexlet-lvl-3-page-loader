@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define, no-shadow, object-curly-newline */
 import axios from 'axios';
 import fs from 'mz/fs';
 import debugLib from 'debug';
@@ -6,94 +5,48 @@ import Listr from 'listr';
 import { getRemoteFileUrls, changeHtmlUrls, genFilename, genOutputPath, genLocalFilename } from './utils';
 import buildErrorMsg from './errorBulder';
 
-const infoLogger = debugLib('page-loader:info');
-const httpLogger = debugLib('page-loader:http');
-const fsLogger = debugLib('page-loader:fs');
-
-const log = (type, ...messages) => {
-  const loggers = {
-    info: infoLogger,
-    http: httpLogger,
-    fs: fsLogger,
-  };
-  return loggers[type](...messages);
-};
-
-const loadPage = (inputUrl, outputPath) => {
-  log('info', 'Begin page-load........................');
-  const htmlFilename = genFilename(inputUrl, 'html');
-  const htmlFilepath = genOutputPath(outputPath, htmlFilename);
-  const filesDirname = genFilename(inputUrl, 'files');
-  const filesPath = genOutputPath(outputPath, filesDirname);
-
-  log('info', 'Start asyncronous work.................');
-  return writeEmptyHtmlFile(htmlFilepath, '')
-    .then(() => makeDirForFiles(filesPath))
-    .then(() => getHtmlData(inputUrl))
-    .then((htmlData) => {
-      log('info', 'Getting required urls and process html...');
-      const filesToDownload = getRemoteFileUrls(htmlData, inputUrl);
-      const modifiedHtml = changeHtmlUrls(htmlData, inputUrl);
-      return downloadAllFiles(filesToDownload, filesPath, modifiedHtml);
-    })
-    .then(modifiedHtml => writeProcessedHtmlFile(htmlFilepath, modifiedHtml))
-    .then(() => {
-      const successMsg = 'Page and files has been succesfully downloaded';
-      log('info', successMsg);
-      console.log(successMsg);
-      console.log('Saved html to:', htmlFilepath);
-      console.log('Saved files to:', filesPath);
-    })
-    .catch((err) => {
-      log('info', buildErrorMsg(err));
-      return Promise.reject(err);
-    });
-};
+const logInfo = debugLib('page-loader:info');
+const logHttp = debugLib('page-loader:http');
+const logFs = debugLib('page-loader:fs');
 
 const getData = url => axios.get(url, { responseType: 'arraybuffer' })
   .then(res => res.data);
 
 const getHtmlData = (url) => {
-  log('http', 'Making http GET request to:', url);
-  return getData(url)
-    .catch(err => Promise.reject(err));
+  logHttp('Making http GET request to:', url);
+  return getData(url);
 };
 
-const writeFile = (filepath, data) => fs.writeFile(filepath, data);
-
 const writeEmptyHtmlFile = (filepath, data) => {
-  log('fs', 'Writing empty html file:', filepath);
-  return writeFile(filepath, data)
-    .then(() => log('fs', 'Ok! Html file saved.'))
+  logFs('Writing empty html file:', filepath);
+  return fs.writeFile(filepath, data)
+    .then(() => logFs('Ok! Html file saved.'))
     .catch((err) => {
-      log('fs', buildErrorMsg(err));
-      return Promise.reject(err);
+      logFs(buildErrorMsg(err));
     });
 };
 
 const writeProcessedHtmlFile = (filepath, data) => {
-  log('fs', 'Writing processed html file:', filepath);
-  return writeFile(filepath, data)
-    .then(() => log('fs', 'Ok! Html file saved.'))
-    .catch(err => Promise.reject(err));
+  logFs('Writing processed html file:', filepath);
+  return fs.writeFile(filepath, data, 'utf-8')
+    .then(() => logFs('Ok! Html file saved.'));
 };
 
 const makeDirForFiles = (path) => {
-  log('fs', 'Creating directory for downloading files:', path);
+  logFs('Creating directory for downloading files:', path);
   return fs.mkdir(path)
-    .then(() => log('fs', 'Ok! Directory created.'))
-    .catch(err => Promise.reject(err));
+    .then(() => logFs('Ok! Directory created.'));
 };
 
 const downloadRemoteFile = (urlStr, pathForFiles) => {
   const filename = genLocalFilename(urlStr);
   const filepath = genOutputPath(pathForFiles, filename);
-  log('http', 'Downloading file:', urlStr);
+  logHttp('Downloading file:', urlStr);
   return getData(urlStr)
-    .then(data => writeFile(filepath, data))
-    .then(() => log('fs', 'Ok! File has been saved:', filepath))
+    .then(data => fs.writeFile(filepath, data))
+    .then(() => logFs('Ok! File has been saved:', filepath))
     .catch((err) => {
-      log('info', buildErrorMsg(err));
+      logInfo(buildErrorMsg(err));
       return Promise.reject(err);
     });
 };
@@ -110,17 +63,47 @@ const genLoadFileTaskObj = (url, path) => {
   return taskObj;
 };
 
-const genTasksColl = (urls, path) =>
-  urls.map(url => genLoadFileTaskObj(url, path));
-
-const genBigTask = tasksColl => new Listr(tasksColl, { concurrent: true });
+const genTaskLoadAllFiles = (urls, path) => {
+  const tasksColl = urls.map(url => genLoadFileTaskObj(url, path));
+  return new Listr(tasksColl, { concurrent: true });
+};
 
 const downloadAllFiles = (urls, path, html) => {
-  log('http', 'Begin downloading remote files...');
-  const tasksColl = genTasksColl(urls, path);
-  const bigTask = genBigTask(tasksColl);
-  return bigTask.run()
+  logHttp('Begin downloading remote files...');
+  const task = genTaskLoadAllFiles(urls, path);
+  return task.run()
     .then(() => html);
+};
+
+const loadPage = (inputUrl, outputPath) => {
+  logInfo('Begin page-load........................');
+  const htmlFilename = genFilename(inputUrl, 'html');
+  const htmlFilepath = genOutputPath(outputPath, htmlFilename);
+  const filesDirname = genFilename(inputUrl, 'files');
+  const filesPath = genOutputPath(outputPath, filesDirname);
+
+  logInfo('Start asyncronous work.................');
+  return writeEmptyHtmlFile(htmlFilepath, '')
+    .then(() => makeDirForFiles(filesPath))
+    .then(() => getHtmlData(inputUrl))
+    .then((htmlData) => {
+      logInfo('Getting required urls and process html...');
+      const filesToDownload = getRemoteFileUrls(htmlData, inputUrl);
+      const modifiedHtml = changeHtmlUrls(htmlData, inputUrl);
+      return downloadAllFiles(filesToDownload, filesPath, modifiedHtml);
+    })
+    .then(modifiedHtml => writeProcessedHtmlFile(htmlFilepath, modifiedHtml))
+    .then(() => {
+      const successMsg = 'Page and files has been downloaded';
+      logInfo(successMsg);
+      console.log(successMsg);
+      console.log('Saved html to:', htmlFilepath);
+      console.log('Saved files to:', filesPath);
+    })
+    .catch((err) => {
+      logInfo(buildErrorMsg(err));
+      return Promise.reject(err);
+    });
 };
 
 export default loadPage;
