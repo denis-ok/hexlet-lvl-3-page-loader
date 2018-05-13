@@ -1,7 +1,31 @@
-This is Hexlet Javascript backend project level 3: pade-loader.
+[![Maintainability](https://api.codeclimate.com/v1/badges/63d6098ad8f6a76b8877/maintainability)](https://codeclimate.com/github/denis-ok/project-lvl3-s194/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/63d6098ad8f6a76b8877/test_coverage)](https://codeclimate.com/github/denis-ok/project-lvl3-s194/test_coverage) [![Build Status](https://travis-ci.org/denis-ok/project-lvl3-s194.svg?branch=master)](https://travis-ci.org/denis-ok/project-lvl3-s194)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/63d6098ad8f6a76b8877/maintainability)](https://codeclimate.com/github/denis-ok/project-lvl3-s194/maintainability)
+### Page Loader
+**Hexlet JavaScript Project: level 3**
+___
+This package is a CLI utility for downloading single web page with resources.
 
-[![Test Coverage](https://api.codeclimate.com/v1/badges/63d6098ad8f6a76b8877/test_coverage)](https://codeclimate.com/github/denis-ok/project-lvl3-s194/test_coverage)
+Main purpose of working on this project was practice in asyncronous JavaScript code.
+Things that i also worked on and learned here:
+* Code testing with Mock objects
+* Error handling and exceptions
+* Interaction with file system
+* Http protocol
 
-[![Build Status](https://travis-ci.org/denis-ok/project-lvl3-s194.svg?branch=master)](https://travis-ci.org/denis-ok/project-lvl3-s194)
+**Installation:**
+```
+$ npm install -g strelkov-pageloader
+```
+
+**Usage:**
+```
+  Usage: page-loader [options] <url>
+
+  This program takes URL to download web-page for local use
+
+  Options:
+
+    -V, --version       output the version number
+    -o, --output <dir>  Specify output directory
+    -h, --help          output usage information
+```
